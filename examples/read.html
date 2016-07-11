@@ -1,7 +1,7 @@
 <html>
 <head><title>task.js examples: read</title></head>
 <script type="application/javascript" src="../lib/task.js"></script>
-<script type="application/javascript;version=1.8">
+<script type="application/javascript">
 var { Deferred } = task;
 
 // promise version of XMLHttpRequest
@@ -16,12 +16,7 @@ function read(url, method) {
                 e.status = xhr.status;
                 deferred.reject(e);
             } else {
-                deferred.resolve({
-                    status: xhr.status,
-                    statusText: xhr.statusText,
-                    responseText: xhr.responseText,
-                    responseXML: xhr.responseXML
-                });
+                deferred.resolve(xhr);
             }
         }
     };
@@ -31,16 +26,20 @@ function read(url, method) {
 }
 
 function go() {
-    var { spawn, join } = task;
+    let { spawn, join } = task;
 
-    var out = document.getElementById("out");
+    let out = document.getElementById("out");
 
-    spawn(function() {
+    spawn(function*() {
         out.innerHTML = "reading...\n";
         try {
-            var [ f1, f2 ] = yield join(read("sleep.html"), read("read.html"));
-            out.innerHTML += "sleep.html: " + (f1.responseText.length) + "\n";
-            out.innerHTML += "read.html: " + (f2.responseText.length) + "\n";
+            let [ f1, f2 ] = yield join(read("https://cors-test.appspot.com/test"), read("https://cors-test.appspot.com/test"));
+            out.innerHTML += "1: " + (f1.responseText.length) + "\n";
+            out.innerHTML += "2: " + (f2.responseText.length) + "\n";
+	    console.debug("f1, f2", f1, f2);
+            f1 = yield read("https://cors-test.appspot.com/test");
+            out.innerHTML += "3: " + (f1.responseText.length) + "\n";
+	    console.debug("f3", f1);
         } catch (e) {
             e.stack.split(/\n/).forEach(function(line) { console.log(line) });
             console.log("");
